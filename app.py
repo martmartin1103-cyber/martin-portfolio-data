@@ -1,14 +1,12 @@
-# app.py - Version optimisée pour déploiement
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import os
+import datetime
 from pathlib import Path
 
 # =====================================================
-# CONFIGURATION
+# CONFIG
 # =====================================================
 st.set_page_config(
     page_title="Martin Alquier – Business Analyst",
@@ -18,57 +16,17 @@ st.set_page_config(
 )
 
 # =====================================================
-# FONCTIONS UTILITAIRES POUR LES IMAGES
-# =====================================================
-def load_image(image_path, default_placeholder=True, alt_text="Image"):
-    """
-    Charge une image avec gestion d'erreur. Retourne un placeholder si l'image n'est pas trouvée.
-    """
-    try:
-        # Vérifier si c'est une URL
-        if image_path.startswith('http'):
-            return image_path
-        
-        # Vérifier les chemins locaux
-        possible_paths = [
-            image_path,
-            f"assets/{image_path}",
-            f"images/{image_path}",
-            f"data/{image_path}"
-        ]
-        
-        for path in possible_paths:
-            if os.path.exists(path):
-                return path
-        
-        # Si aucune image trouvée et placeholder activé
-        if default_placeholder:
-            if "logo" in image_path.lower() or "inetum" in image_path.lower():
-                return "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
-            elif "efrei" in image_path.lower():
-                return "https://upload.wikimedia.org/wikipedia/fr/thumb/6/6b/Logo_Efrei_Paris.svg/1200px-Logo_Efrei_Paris.svg.png"
-            elif "dauphine" in image_path.lower():
-                return "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Logo_Universit%C3%A9_Paris-Dauphine.svg/1200px-Logo_Universit%C3%A9_Paris-Dauphine.svg.png"
-            else:
-                return f"https://via.placeholder.com/400x200/667eea/ffffff?text={alt_text.replace(' ', '+')}"
-        
-        return None
-    except Exception as e:
-        if default_placeholder:
-            return f"https://via.placeholder.com/400x200/667eea/ffffff?text={alt_text.replace(' ', '+')}"
-        return None
-
-# =====================================================
 # CSS PERSONNALISÉ
 # =====================================================
 def load_custom_css():
     st.markdown("""
     <style>
-    /* Styles précédents restent les mêmes... */
+    /* Style général */
     .main {
         padding: 2rem;
     }
     
+    /* Cartes améliorées */
     .card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 15px;
@@ -83,6 +41,38 @@ def load_custom_css():
         transform: translateY(-5px);
     }
     
+    .card-secondary {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .card-success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    /* Timeline */
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        padding-left: 1.5rem;
+    }
+    
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        top: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #667eea;
+    }
+    
+    /* Tags compétences */
     .skill-tag {
         display: inline-block;
         background: #eef2ff;
@@ -94,6 +84,17 @@ def load_custom_css():
         font-weight: 500;
     }
     
+    /* Boutons */
+    .stButton button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 600;
+    }
+    
+    /* Section header */
     .section-header {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -102,6 +103,7 @@ def load_custom_css():
         margin: 2rem 0 1rem 0;
     }
     
+    /* Cercle pour photo de profil */
     .profile-circle {
         border-radius: 50%;
         overflow: hidden;
@@ -118,6 +120,7 @@ def load_custom_css():
         object-fit: cover;
     }
     
+    /* Cadre pour photos d'expérience */
     .experience-image-frame {
         border-radius: 12px;
         overflow: hidden;
@@ -141,6 +144,7 @@ def load_custom_css():
         object-fit: cover;
     }
     
+    /* Cadre pour photos de formation */
     .education-image-frame {
         border-radius: 12px;
         overflow: hidden;
@@ -166,21 +170,62 @@ def load_custom_css():
         background: white;
     }
     
-    /* Responsive design */
-    @media (max-width: 768px) {
-        .main {
-            padding: 1rem;
-        }
-        
-        .profile-circle {
-            width: 120px;
-            height: 120px;
-        }
-        
-        .experience-image-frame,
-        .education-image-frame {
-            height: 150px;
-        }
+    /* Badges */
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 8px;
+    }
+    
+    .badge-primary {
+        background: #eef2ff;
+        color: #4f46e5;
+    }
+    
+    .badge-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    /* Card expérience améliorée */
+    .experience-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        border-left: 5px solid #667eea;
+        transition: all 0.3s ease;
+    }
+    
+    .experience-card:hover {
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        transform: translateY(-3px);
+    }
+    
+    /* Card formation améliorée */
+    .education-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        border-left: 5px solid #42be65;
+        transition: all 0.3s ease;
+    }
+    
+    .education-card:hover {
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        transform: translateY(-3px);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -222,9 +267,8 @@ def kpi_card(title, value, subtitle="", color="#0f62fe", icon="📊", trend=None
 def experience_card_with_image(company, role, duration, description, image_path, location="Paris, France", 
                                tags=None, achievements=None, company_color="#667eea"):
     
-    safe_image_path = load_image(image_path, alt_text=company)
-    
     with st.container():
+        # En-tête avec logo/photo
         col1, col2 = st.columns([4, 1])
         
         with col1:
@@ -256,9 +300,27 @@ def experience_card_with_image(company, role, duration, description, image_path,
             """, unsafe_allow_html=True)
         
         with col2:
+            # Cadre pour l'image
             st.markdown('<div class="experience-image-frame">', unsafe_allow_html=True)
-            if safe_image_path:
-                st.image(safe_image_path, use_container_width=True)
+            try:
+                st.image(image_path, use_container_width=True)
+            except:
+                # Placeholder avec initiales de l'entreprise
+                st.markdown(f"""
+                <div style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: linear-gradient(135deg, {company_color} 0%, #764ba2 100%);
+                    color: white;
+                    font-size: 2rem;
+                    font-weight: bold;
+                ">
+                    {company[0:2]}
+                </div>
+                """, unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
         
         # Description
@@ -273,14 +335,50 @@ def experience_card_with_image(company, role, duration, description, image_path,
         </div>
         """, unsafe_allow_html=True)
         
+        # Tags
+        if tags:
+            st.markdown("**🔧 Technologies & Compétences :**")
+            cols = st.columns(6)
+            for i, tag in enumerate(tags):
+                with cols[i % 6]:
+                    st.markdown(f'<span class="badge badge-primary">{tag}</span>', unsafe_allow_html=True)
+        
+        # Réalisations avec indicateurs
+        if achievements:
+            with st.expander(f"🏆 Réalisations chez {company}", expanded=False):
+                for idx, achievement in enumerate(achievements):
+                    col_a, col_b = st.columns([4, 1])
+                    with col_a:
+                        st.markdown(f"**{achievement['title']}**")
+                        st.markdown(f"{achievement['description']}")
+                        if 'metrics' in achievement:
+                            for metric in achievement['metrics']:
+                                st.markdown(f'<span class="badge badge-success">{metric}</span>', 
+                                          unsafe_allow_html=True)
+                    with col_b:
+                        if 'impact' in achievement:
+                            impact_value = achievement['impact']
+                            impact_color = "#42be65" if impact_value > 0 else "#da1e28"
+                            st.markdown(f"""
+                            <div style="
+                                background: {impact_color};
+                                color: white;
+                                padding: 0.5rem;
+                                border-radius: 8px;
+                                text-align: center;
+                                font-weight: bold;
+                            ">
+                                {f"+{impact_value}%" if impact_value > 0 else f"{impact_value}%"}
+                            </div>
+                            """, unsafe_allow_html=True)
+        
         st.divider()
 
 def education_card_with_image(diploma, school, duration, description, image_path, 
-                             location="Paris, France", specialities=None):
-    
-    safe_image_path = load_image(image_path, alt_text=school)
+                             location="Paris, France", specialities=None, honors=None):
     
     with st.container():
+        # En-tête avec logo école
         col1, col2 = st.columns([4, 1])
         
         with col1:
@@ -314,9 +412,28 @@ def education_card_with_image(diploma, school, duration, description, image_path
             """, unsafe_allow_html=True)
         
         with col2:
+            # Cadre pour le logo de l'école
             st.markdown('<div class="education-image-frame">', unsafe_allow_html=True)
-            if safe_image_path:
-                st.image(safe_image_path, use_container_width=True)
+            try:
+                st.image(image_path, use_container_width=True)
+            except:
+                # Placeholder avec initiales de l'école
+                st.markdown(f"""
+                <div style="
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: linear-gradient(135deg, #42be65 0%, #00a854 100%);
+                    color: white;
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    padding: 10px;
+                ">
+                    {school.split()[0][0:2] if len(school.split()) > 0 else "🎓"}
+                </div>
+                """, unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
         
         # Description
@@ -331,10 +448,51 @@ def education_card_with_image(diploma, school, duration, description, image_path
         </div>
         """, unsafe_allow_html=True)
         
+        # Spécialités
+        if specialities:
+            st.markdown("**📚 Spécialités & Modules :**")
+            cols = st.columns(4)
+            for i, speciality in enumerate(specialities):
+                with cols[i % 4]:
+                    st.markdown(f'''
+                    <div style="
+                        background: #dcfce7;
+                        padding: 0.5rem;
+                        border-radius: 8px;
+                        text-align: center;
+                        margin: 0.2rem;
+                        border-left: 3px solid #42be65;
+                    ">
+                        {speciality}
+                    </div>
+                    ''', unsafe_allow_html=True)
+        
+        # Distinctions
+        if honors:
+            with st.expander("🏅 Distinctions & Projets académiques", expanded=False):
+                for honor in honors:
+                    col_a, col_b = st.columns([4, 1])
+                    with col_a:
+                        st.markdown(f"**{honor['title']}**")
+                        st.markdown(f"{honor['description']}")
+                    with col_b:
+                        st.markdown(f'''
+                        <div style="
+                            background: #fef3c7;
+                            padding: 0.5rem;
+                            border-radius: 8px;
+                            text-align: center;
+                            font-weight: bold;
+                            color: #92400e;
+                        ">
+                            {honor.get('year', duration.split('-')[0])}
+                        </div>
+                        ''', unsafe_allow_html=True)
+        
         st.divider()
 
 # =====================================================
-# DONNÉES (Personnalisez ces données avec vos informations)
+# DONNÉES EXEMPLES AMÉLIORÉES
 # =====================================================
 EXPERIENCES = [
     {
@@ -343,8 +501,29 @@ EXPERIENCES = [
         "duration": "Sept 2022 - Présent",
         "location": "Paris La Défense, France",
         "description": "Consultant en data analytics pour la Direction Générale et l'Audit Interne. Missions de dashboarding KPI, automatisation des rapports et support décisionnel pour le CODIR.",
-        "image_path": "inetum_logo.jpg",  # Placez votre image dans assets/inetum_logo.jpg
-        "company_color": "#0056b3",
+        "image_path": "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",  # Remplacez par "inetum_logo.jpg"
+        "company_color": "#0056b3",  # Bleu INETUM
+        "tags": ["Power BI", "SQL", "Python", "DataViz", "Process Mining", "Azure", "Tableau", "DAX"],
+        "achievements": [
+            {
+                "title": "Dashboarding Direction Générale",
+                "description": "Création de 6 dashboards KPI pour le CODIR couvrant Sales, RH et Coûts",
+                "metrics": ["6 Dashboards", "30+ KPI", "12 Datasources"],
+                "impact": 30
+            },
+            {
+                "title": "Automatisation des rapports",
+                "description": "Automatisation complète du reporting mensuel avec Python et Power BI",
+                "metrics": ["Python Scripts", "Power Automate", "SQL Jobs"],
+                "impact": 40
+            },
+            {
+                "title": "Formation équipes métier",
+                "description": "Formation de 50+ collaborateurs à l'utilisation des outils data",
+                "metrics": ["50+ Personnes", "10 Sessions", "95% Satisfaction"],
+                "impact": 95
+            }
+        ]
     },
     {
         "company": "Zigourrat",
@@ -352,8 +531,47 @@ EXPERIENCES = [
         "duration": "Mars 2021 - Août 2022",
         "location": "Paris, France",
         "description": "Consultant en innovation digitale et Web3.0. Analyse marketing data et recommandations stratégiques pour clients du secteur tech.",
-        "image_path": "zigourrat_logo.jpg",  # Placez votre image dans assets/zigourrat_logo.jpg
-        "company_color": "#FF6B6B",
+        "image_path": "https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",  # Remplacez par "zigourrat_logo.jpg"
+        "company_color": "#FF6B6B",  # Rouge/Orange
+        "tags": ["Web3", "Marketing Analytics", "Growth", "Blockchain", "SEO/SEA", "CRM"],
+        "achievements": [
+            {
+                "title": "Stratégie Web3",
+                "description": "Mise en place de stratégies Web3 pour 3 clients avec suivi KPI",
+                "metrics": ["3 Clients", "Web3 Strategy", "NFT Projects"],
+                "impact": 50
+            },
+            {
+                "title": "Optimisation acquisition",
+                "description": "Optimisation des campagnes marketing digital avec analyse ROI",
+                "metrics": ["ROI +45%", "CAC -30%", "LTV +25%"],
+                "impact": 45
+            }
+        ]
+    },
+    {
+        "company": "MetaLand",
+        "role": "Founder & CEO",
+        "duration": "Jan 2020 - Fév 2021",
+        "location": "Remote & Paris",
+        "description": "Fondation et direction d'une startup dans le domaine du métaverse. Gestion produit, stratégie growth et analyse data.",
+        "image_path": "https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",  # Remplacez par "metaland_logo.jpg"
+        "company_color": "#9D4EDD",  # Violet
+        "tags": ["Product Management", "Startup", "Growth Hacking", "KPI", "CRM", "SEO/SEA"],
+        "achievements": [
+            {
+                "title": "Lancement produit MVP",
+                "description": "Lancement du MVP avec 1000 utilisateurs actifs en 3 mois",
+                "metrics": ["1000 Users", "MVP Launch", "Product-Market Fit"],
+                "impact": 120
+            },
+            {
+                "title": "Levée de fonds",
+                "description": "Levée de 150K€ auprès de business angels",
+                "metrics": ["150K€ Raised", "3 Angels", "6 Months Runway"],
+                "impact": 150
+            }
+        ]
     }
 ]
 
@@ -364,7 +582,29 @@ EDUCATIONS = [
         "duration": "2020 - 2022",
         "location": "Paris, France",
         "description": "Formation d'excellence en Data Science avec double compétence business et technique. Spécialisation en Machine Learning, Big Data et Intelligence Artificielle.",
-        "image_path": "efrei_logo.png",  # Placez votre image dans assets/efrei_logo.png
+        "image_path": "https://upload.wikimedia.org/wikipedia/fr/thumb/6/6b/Logo_Efrei_Paris.svg/1200px-Logo_Efrei_Paris.svg.png",  # Remplacez par "efrei_campus.jpg"
+        "specialities": [
+            "Machine Learning", 
+            "Big Data & Hadoop", 
+            "Deep Learning", 
+            "Data Visualization",
+            "Business Intelligence",
+            "Cloud Computing",
+            "Data Engineering",
+            "Statistical Analysis"
+        ],
+        "honors": [
+            {
+                "title": "Prix du meilleur projet Data",
+                "description": "Projet de prédiction de fraude avec 95% de précision",
+                "year": "2022"
+            },
+            {
+                "title": "Hackathon Data for Good",
+                "description": "1ère place au hackathon sur l'optimisation des dons alimentaires",
+                "year": "2021"
+            }
+        ]
     },
     {
         "diploma": "Bachelor Business & Management",
@@ -372,20 +612,177 @@ EDUCATIONS = [
         "duration": "2017 - 2020",
         "location": "Paris, France",
         "description": "Formation en gestion d'entreprise avec spécialisation en finance et stratégie. Double compétence quantitative et managériale.",
-        "image_path": "dauphine_logo.jpg",  # Placez votre image dans assets/dauphine_logo.jpg
+        "image_path": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Logo_Universit%C3%A9_Paris-Dauphine.svg/1200px-Logo_Universit%C3%A9_Paris-Dauphine.svg.png",  # Remplacez par "dauphine_campus.jpg"
+        "specialities": [
+            "Corporate Finance", 
+            "Business Strategy", 
+            "Marketing Analytics", 
+            "Entrepreneurship",
+            "Project Management",
+            "Econometrics",
+            "Digital Transformation"
+        ],
+        "honors": [
+            {
+                "title": "Mention Très Bien",
+                "description": "Diplôme obtenu avec mention Très Bien (16,5/20)",
+                "year": "2020"
+            },
+            {
+                "title": "Projet entrepreneurial",
+                "description": "Création d'une marketplace étudiante avec 500 utilisateurs",
+                "year": "2019"
+            }
+        ]
+    },
+    {
+        "diploma": "Certifications Professionnelles",
+        "school": "Microsoft, Google, Scrum.org",
+        "duration": "2021 - 2023",
+        "location": "En ligne & Paris",
+        "description": "Certifications techniques et métier complémentaires pour renforcer l'expertise data et management.",
+        "image_path": "https://images.unsplash.com/photo-1532619187608-e5375cab36aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",  # Remplacez par "certifications.jpg"
+        "specialities": [
+            "Microsoft Certified: Data Analyst Associate", 
+            "Google Analytics Individual Qualification", 
+            "Certified ScrumMaster®", 
+            "Azure Fundamentals",
+            "Power BI Data Analyst",
+            "Tableau Desktop Specialist"
+        ],
+        "honors": [
+            {
+                "title": "Top 10% Microsoft Exam",
+                "description": "Score de 925/1000 à l'examen PL-300",
+                "year": "2023"
+            }
+        ]
     }
 ]
 
+PROJECTS = [
+    {
+        "title": "Système de prédiction des coûts logistiques",
+        "client": "Dassault Systèmes x Mistral AI",
+        "description": "IA prédictive pour l'optimisation de la supply chain",
+        "technologies": ["Python", "Scikit-learn", "Mistral AI", "Streamlit"],
+        "link": "#"
+    },
+    {
+        "title": "Plateforme de mentoring start-up",
+        "client": "Kryptosphere Accelerator",
+        "description": "Accompagnement de 12 start-up en stratégie data",
+        "technologies": ["Business Strategy", "Data Architecture", "KPI Design"],
+        "link": "#"
+    }
+]
+
+SKILLS_DATA = {
+    "Techniques": ["Python", "SQL", "Power BI", "Tableau", "Excel", "Git"],
+    "Business": ["Analyse KPI", "Product Management", "Stratégie", "Reporting", "Agile"],
+    "Soft Skills": ["Communication", "Leadership", "Problem Solving", "Teamwork"]
+}
+
 # =====================================================
-# SIDEBAR
+# GRAPHIQUES AMÉLIORÉS
+# =====================================================
+def radar_competences():
+    skills = {
+        "Analyse Business": 90,
+        "Data Analysis": 85,
+        "KPI & Reporting": 90,
+        "Product / Agile": 80,
+        "IA & Innovation": 75,
+        "Stratégie": 85,
+        "Visualisation": 88
+    }
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=list(skills.values()),
+        theta=list(skills.keys()),
+        fill="toself",
+        fillcolor="rgba(102, 126, 234, 0.6)",
+        line=dict(color="rgb(102, 126, 234)", width=2),
+        name="Compétences"
+    ))
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 100],
+                tickfont=dict(size=10)
+            ),
+            bgcolor="rgba(245, 247, 255, 0.5)"
+        ),
+        showlegend=False,
+        margin=dict(l=40, r=40, t=40, b=40),
+        height=300,
+        paper_bgcolor="rgba(0,0,0,0)"
+    )
+
+    return fig
+
+def create_revenue_chart():
+    df = pd.DataFrame({
+        "Mois": ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"],
+        "Revenu": [180, 195, 210, 220, 240, 250, 260, 270, 280, 290, 300, 310],
+        "Coûts": [120, 115, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155],
+        "Marge": [60, 80, 100, 105, 120, 125, 130, 135, 140, 145, 150, 155]
+    })
+    
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=df["Mois"],
+        y=df["Revenu"],
+        name="Revenu",
+        marker_color="#667eea"
+    ))
+    fig.add_trace(go.Scatter(
+        x=df["Mois"],
+        y=df["Marge"],
+        name="Marge",
+        line=dict(color="#42be65", width=3),
+        yaxis="y2"
+    ))
+    
+    fig.update_layout(
+        title="Évolution des revenus et marges",
+        xaxis_title="Mois",
+        yaxis_title="Revenu (K€)",
+        yaxis2=dict(
+            title="Marge (K€)",
+            overlaying="y",
+            side="right"
+        ),
+        height=400,
+        plot_bgcolor="rgba(245, 247, 255, 0.5)",
+        paper_bgcolor="rgba(0,0,0,0)"
+    )
+    
+    return fig
+
+# =====================================================
+# SIDEBAR – PROFIL
 # =====================================================
 with st.sidebar:
-    # Photo de profil
+    # Photo de profil avec effet
     st.markdown('<div class="profile-circle">', unsafe_allow_html=True)
     try:
-        profile_pic = load_image("photo.jpeg", alt_text="Martin Alquier")
-        st.image(profile_pic, use_container_width=True)
-    except:
+        # Essayez plusieurs chemins possibles
+        try:
+            st.image("photo.jpeg", use_container_width=True)
+        except:
+            try:
+                st.image("photo.jpg", use_container_width=True)
+            except:
+                try:
+                    st.image("photo.png", use_container_width=True)
+                except:
+                    st.image("https://via.placeholder.com/150/667eea/ffffff?text=MA", 
+                            use_container_width=True)
+    except Exception as e:
         st.image("https://via.placeholder.com/150/667eea/ffffff?text=MA", 
                 use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -420,19 +817,42 @@ with st.sidebar:
     
     st.divider()
     
-    # Contact
+    # Compétences radar
+    st.markdown("### 📊 Compétences")
+    st.plotly_chart(radar_competences(), use_container_width=True, config={'displayModeBar': False})
+    
+    # Tags compétences
+    st.markdown("#### 🔧 Technologies")
+    cols = st.columns(3)
+    tech_skills = ["Python", "SQL", "Power BI", "Tableau", "Excel", "Git"]
+    for i, skill in enumerate(tech_skills):
+        with cols[i % 3]:
+            st.markdown(f'<span class="skill-tag">{skill}</span>', unsafe_allow_html=True)
+    
+    st.divider()
+    
+    # Contact sidebar
     st.markdown("### 📱 Contact")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/martinalquier)")
+        st.markdown("[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com)")
     with col2:
-        st.markdown("[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/martinalquier)")
+        st.markdown("[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com)")
     with col3:
-        st.markdown("[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:martin.alquier@business.com)")
+        st.markdown("[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:contact@example.com)")
+    
+    st.divider()
+    
+    # Logo école
+    try:
+        st.image("efrei_logo.png", use_container_width=True)
+    except:
+        pass
 
 # =====================================================
 # PAGES
 # =====================================================
+
 if page == "🏠 Accueil":
     st.title("👋 Bienvenue sur mon Portfolio Data")
     
@@ -471,10 +891,27 @@ if page == "🏠 Accueil":
                    unsafe_allow_html=True)
         st.markdown(kpi_card("Start-ups accompagnées", "12", "Accélérateur Kryptosphere", "#f1c21b", "🚀"), 
                    unsafe_allow_html=True)
+    
+    st.divider()
+    
+    # Dernières réalisations
+    st.markdown("### 🌟 Dernières réalisations")
+    cols = st.columns(3)
+    with cols[0]:
+        st.markdown(kpi_card("Gain d'efficacité", "+30%", "Automatisation reporting", "#667eea", "⚡", 12), 
+                   unsafe_allow_html=True)
+    with cols[1]:
+        st.markdown(kpi_card("Satisfaction client", "95%", "NPS augmenté", "#42be65", "😊", 15), 
+                   unsafe_allow_html=True)
+    with cols[2]:
+        st.markdown(kpi_card("Réduction coûts", "-18%", "Optimisation supply chain", "#f1c21b", "💰", -8), 
+                   unsafe_allow_html=True)
 
+# -----------------------------------------------------
 elif page == "🏢 Expériences":
     st.title("🏢 Parcours Professionnel")
     
+    # Introduction avec statistiques
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown(kpi_card("Entreprises", "3", "Consulting & Startup", "#667eea", "🏢"), 
@@ -488,6 +925,7 @@ elif page == "🏢 Expériences":
     
     st.markdown("### 📍 Mes expériences en détail")
     
+    # Timeline des expériences avec images
     for exp in EXPERIENCES:
         experience_card_with_image(
             company=exp["company"],
@@ -496,12 +934,212 @@ elif page == "🏢 Expériences":
             location=exp["location"],
             description=exp["description"],
             image_path=exp["image_path"],
-            company_color=exp["company_color"]
+            company_color=exp["company_color"],
+            tags=exp["tags"],
+            achievements=exp["achievements"]
         )
+    
+    # Section témoignages ou références
+    st.markdown("### 💬 Témoignages")
+    with st.expander("Voir les recommandations", expanded=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("""
+            <div style="
+                background: #f8f9fa;
+                padding: 1.5rem;
+                border-radius: 10px;
+                margin: 1rem 0;
+                border-left: 4px solid #667eea;
+            ">
+                <p style="font-style: italic; color: #555;">
+                "Martin a transformé notre approche data avec des dashboards qui sont devenus indispensables à notre prise de décision quotidienne."
+                </p>
+                <p style="text-align: right; font-weight: bold; color: #333;">
+                — Directeur Général, INETUM
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            <div style="
+                background: #f8f9fa;
+                padding: 1.5rem;
+                border-radius: 10px;
+                margin: 1rem 0;
+                border-left: 4px solid #42be65;
+            ">
+                <p style="font-style: italic; color: #555;">
+                "Une vision stratégique exceptionnelle couplée à une expertise technique solide. Un partenaire idéal pour nos projets d'innovation."
+                </p>
+                <p style="text-align: right; font-weight: bold; color: #333;">
+                — CEO, Zigourrat
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
+# -----------------------------------------------------
+elif page == "📂 Projets":
+    st.title("📂 Portfolio de Projets")
+    
+    # Filtres
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        category = st.selectbox("Filtrer par catégorie", ["Tous", "Data Science", "Business Intelligence", "IA/ML", "Stratégie"])
+    with col2:
+        year = st.selectbox("Année", ["Toutes", "2024", "2023", "2022"])
+    with col3:
+        st.markdown("<br>", unsafe_allow_html=True)
+        show_details = st.checkbox("Afficher détails", value=True)
+    
+    # Grille de projets
+    for project in PROJECTS:
+        project_card(
+            title=project["title"],
+            client=project["client"],
+            description=project["description"],
+            technologies=project["technologies"],
+            link=project["link"]
+        )
+        
+        if show_details:
+            with st.expander("📋 Détails du projet"):
+                cols = st.columns(2)
+                with cols[0]:
+                    st.markdown("**📈 Impact Business**")
+                    st.markdown("""
+                    - Réduction des coûts de 15%
+                    - Gain de temps : 20h/semaine
+                    - ROI : 6 mois
+                    """)
+                with cols[1]:
+                    st.markdown("**🛠️ Stack technique**")
+                    st.markdown("""
+                    - Backend: Python, FastAPI
+                    - Data: Pandas, Scikit-learn
+                    - Visualisation: Plotly, Streamlit
+                    - Infrastructure: Docker, AWS
+                    """)
+
+# -----------------------------------------------------
+elif page == "📈 Dashboard":
+    st.title("📈 Tableau de Bord Business")
+    
+    # Filtres période
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        period = st.selectbox("Période", ["Année 2024", "Trimestre en cours", "Mois en cours"])
+    with col2:
+        metric = st.selectbox("Métrique principale", ["Revenu", "Marge", "NPS", "Coûts"])
+    with col3:
+        comparison = st.selectbox("Comparaison", ["vs année précédente", "vs cible", "vs benchmark"])
+    
+    # KPI Principaux
+    st.markdown("### 🎯 Indicateurs Clés")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(kpi_card("Revenu Mensuel", "210 K€", "+12% vs M-1", "#667eea", "💰", 12), 
+                   unsafe_allow_html=True)
+    with col2:
+        st.markdown(kpi_card("Marge Brute", "32%", "+4 pts", "#42be65", "📈", 4), 
+                   unsafe_allow_html=True)
+    with col3:
+        st.markdown(kpi_card("NPS Client", "85", "+5 pts", "#f1c21b", "😊", 5), 
+                   unsafe_allow_html=True)
+    with col4:
+        st.markdown(kpi_card("Coûts Opérationnels", "110 K€", "-8%", "#da1e28", "📉", -8), 
+                   unsafe_allow_html=True)
+    
+    # Graphiques
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(create_revenue_chart(), use_container_width=True)
+    
+    with col2:
+        # Données sectorielles
+        sector_data = pd.DataFrame({
+            "Secteur": ["Tech", "Finance", "Retail", "Health", "Manufacturing"],
+            "CA": [45, 30, 15, 25, 20],
+            "Croissance": [12, 8, 5, 15, 7]
+        })
+        
+        fig = px.bar(sector_data, x="Secteur", y="CA", 
+                    title="Chiffre d'affaires par secteur",
+                    color="Croissance",
+                    color_continuous_scale="Viridis")
+        fig.update_layout(height=400, plot_bgcolor="rgba(245, 247, 255, 0.5)")
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Tableau détaillé
+    st.markdown("### 📊 Données détaillées")
+    df = pd.DataFrame({
+        "Mois": ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin"],
+        "Revenu": [180, 195, 210, 220, 240, 250],
+        "Coûts": [120, 115, 110, 115, 120, 125],
+        "Marge %": [33, 41, 48, 48, 50, 50],
+        "NPS": [75, 78, 82, 83, 85, 85],
+        "Clients": [45, 48, 52, 55, 58, 60]
+    })
+    
+    st.dataframe(df.style.background_gradient(subset=["Marge %"], cmap="YlGn"), 
+                use_container_width=True)
+
+# -----------------------------------------------------
+elif page == "🛠️ Compétences":
+    st.title("🛠️ Compétences & Expertise")
+    
+    # Radar des compétences
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.plotly_chart(radar_competences(), use_container_width=True)
+    with col2:
+        st.markdown("### 📊 Niveau d'expertise")
+        st.metric("Data Analysis", "Expert", "+2%")
+        st.metric("Business Strategy", "Avancé", "+5%")
+        st.metric("Data Visualization", "Expert", "+3%")
+        st.metric("Machine Learning", "Intermédiaire", "+8%")
+    
+    # Grille des compétences
+    for category, skills in SKILLS_DATA.items():
+        st.markdown(f'<div class="section-header">{category}</div>', unsafe_allow_html=True)
+        cols = st.columns(6)
+        for i, skill in enumerate(skills):
+            with cols[i % 6]:
+                st.markdown(f'<div style="text-align:center;padding:0.5rem;background:#f8f9fa;border-radius:8px;margin:0.2rem;">{skill}</div>', unsafe_allow_html=True)
+    
+    # Certifications
+    st.markdown("### 🏆 Certifications")
+    certs = st.columns(3)
+    with certs[0]:
+        st.markdown("""
+        <div style="background:white;padding:1rem;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+            <h4 style="color:#333;">Microsoft Certified</h4>
+            <p style="color:#666;font-size:0.9rem;">Data Analyst Associate</p>
+            <p style="color:#667eea;font-size:0.8rem;">Obtenu : 2023</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with certs[1]:
+        st.markdown("""
+        <div style="background:white;padding:1rem;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+            <h4 style="color:#333;">Google Analytics</h4>
+            <p style="color:#666;font-size:0.9rem;">Individual Qualification</p>
+            <p style="color:#667eea;font-size:0.8rem;">Obtenu : 2022</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with certs[2]:
+        st.markdown("""
+        <div style="background:white;padding:1rem;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+            <h4 style="color:#333;">Scrum Master</h4>
+            <p style="color:#666;font-size:0.9rem;">Certified ScrumMaster®</p>
+            <p style="color:#667eea;font-size:0.8rem;">Obtenu : 2021</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# -----------------------------------------------------
 elif page == "🎓 Formation":
     st.title("🎓 Formation & Éducation")
     
+    # Introduction avec statistiques
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown(kpi_card("Diplômes", "2", "Master & Bachelor", "#42be65", "🎓"), 
@@ -515,6 +1153,7 @@ elif page == "🎓 Formation":
     
     st.markdown("### 🏫 Mon parcours académique")
     
+    # Timeline des formations avec images
     for edu in EDUCATIONS:
         education_card_with_image(
             diploma=edu["diploma"],
@@ -522,10 +1161,120 @@ elif page == "🎓 Formation":
             duration=edu["duration"],
             location=edu["location"],
             description=edu["description"],
-            image_path=edu["image_path"]
+            image_path=edu["image_path"],
+            specialities=edu["specialities"],
+            honors=edu["honors"]
         )
+    
+    # Section projets académiques
+    st.markdown("### 🎯 Projets académiques marquants")
+    with st.expander("Voir les projets détaillés", expanded=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("""
+            <div style="
+                background: #f0fff4;
+                padding: 1.5rem;
+                border-radius: 10px;
+                margin: 1rem 0;
+            ">
+                <h4 style="color:#333;margin-top:0;">🤖 Système de recommandation</h4>
+                <p style="color:#555;">
+                <strong>Contexte:</strong> Projet de fin d'études en partenariat avec une startup e-commerce<br>
+                <strong>Technos:</strong> Python, Scikit-learn, Flask, PostgreSQL<br>
+                <strong>Résultat:</strong> +15% de conversion sur les recommandations
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            <div style="
+                background: #f0fff4;
+                padding: 1.5rem;
+                border-radius: 10px;
+                margin: 1rem 0;
+            ">
+                <h4 style="color:#333;margin-top:0;">📊 Dashboard RH Analytics</h4>
+                <p style="color:#555;">
+                <strong>Contexte:</strong> Projet Business Intelligence pour un grand groupe<br>
+                <strong>Technos:</strong> Power BI, SQL Server, DAX, Python<br>
+                <strong>Résultat:</strong> Réduction de 20% du turnover dans les départements ciblés
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Section compétences académiques
+    st.markdown("### 📈 Compétences développées")
+    skills_df = pd.DataFrame({
+        "Domaine": ["Data Science", "Business", "Technique", "Management"],
+        "Niveau": [90, 85, 88, 80],
+        "Couleur": ["#42be65", "#667eea", "#f1c21b", "#9d4edd"]
+    })
+    
+    fig = px.bar(skills_df, x="Domaine", y="Niveau", color="Domaine",
+                color_discrete_map={"Data Science": "#42be65", 
+                                  "Business": "#667eea",
+                                  "Technique": "#f1c21b",
+                                  "Management": "#9d4edd"},
+                title="Niveau de compétences par domaine")
+    fig.update_layout(height=400, showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
 
-# ... (les autres pages restent similaires)
+# -----------------------------------------------------
+elif page == "📄 Contact":
+    st.title("📄 Contactez-moi")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("""
+        ### 💬 Discutons de votre projet
+        
+        Vous avez un projet data, besoin d'un dashboard, ou souhaitez optimiser vos processus ?
+        Prenons le temps d'échanger sur vos besoins.
+        """)
+        
+        with st.form("contact_form"):
+            name = st.text_input("Nom complet")
+            email = st.text_input("Email")
+            company = st.text_input("Entreprise")
+            subject = st.selectbox("Sujet", [
+                "Demande de conseil",
+                "Projet Data/BI",
+                "Opportunité professionnelle",
+                "Autre"
+            ])
+            message = st.text_area("Message", height=150)
+            
+            submitted = st.form_submit_button("📤 Envoyer le message")
+            if submitted:
+                st.success("✅ Message envoyé ! Je vous répondrai dans les 24h.")
+    
+    with col2:
+        st.markdown("""
+        ### 📍 Informations de contact
+        
+        **Email professionnel**  
+        martin.alquier@business.com
+        
+        **Téléphone**  
+        +33 6 XX XX XX XX
+        
+        **Localisation**  
+        📍 Paris, France
+        
+        **Disponibilité**  
+        🟢 Disponible pour de nouvelles opportunités
+        """)
+        
+        st.divider()
+        
+        st.markdown("### 🔗 Liens")
+        st.markdown("""
+        [![LinkedIn](https://img.shields.io/badge/-LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/martinalquier)
+        [![GitHub](https://img.shields.io/badge/-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/martinalquier)
+        [![Tableau Public](https://img.shields.io/badge/-Tableau-E97627?style=for-the-badge&logo=tableau&logoColor=white)](https://public.tableau.com/)
+        """)
 
 # =====================================================
 # FOOTER
@@ -537,7 +1286,7 @@ with col2:
         """
         <div style="text-align:center;color:#666;font-size:0.9rem;padding:2rem 0;">
             <p>© 2024 Martin Alquier – Business Analyst Data & IA</p>
-            <p>Dernière mise à jour : Novembre 2024</p>
+            <p>Dernière mise à jour : Octobre 2024</p>
         </div>
         """,
         unsafe_allow_html=True
