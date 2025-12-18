@@ -353,7 +353,7 @@ def experience_card_with_image(company, role, duration, description, image_filen
         
         with col2:
             # Cadre pour l'image
-            st.markdown('<div class="experience-image-frame">', unsafe_allow_html=True)
+            # st.markdown('<div class="experience-image-frame">', unsafe_allow_html=True)
             try:
                 st.image(image_path, use_container_width=True)
             except:
@@ -467,7 +467,7 @@ def education_card_with_image(diploma, school, duration, description, image_file
         
         with col2:
             # Cadre pour le logo de l'école
-            st.markdown('<div class="education-image-frame">', unsafe_allow_html=True)
+            # st.markdown('<div class="education-image-frame">', unsafe_allow_html=True)
             try:
                 st.image(image_path, use_container_width=True)
             except:
@@ -823,7 +823,7 @@ def create_revenue_chart():
 with st.sidebar:
     # Photo de profil avec effet
     profile_image = load_image("photo.jpeg", alt_text="Martin Alquier")
-    st.markdown('<div class="profile-circle">', unsafe_allow_html=True)
+    # st.markdown('<div class="profile-circle">', unsafe_allow_html=True)
     st.image(profile_image, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
@@ -871,20 +871,33 @@ with st.sidebar:
     
     st.divider()
     
-    # Contact sidebar
-    st.markdown("### 📱 Contact")
+     # Contact sidebar
+    st.markdown("### 📱 Mon Contact")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/martinalquier)")
+        st.markdown("[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/martin-alquier/)")
     with col2:
-        st.markdown("[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/martinalquier)")
+        st.markdown("[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/martmartin1103-cyber)")
     with col3:
-        st.markdown("[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:martin.alquier@business.com)")
+        st.markdown("[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:contact@example.com)")
+
+    st.divider()
+    
+    # Contact sidebar
+    st.markdown("### 📱 Mano Joseph Mathew (Proffesseur)")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/manomathew/)")
+    with col2:
+        st.markdown("[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com)")
+    with col3:
+        st.markdown("[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:contact@example.com)")
     
     st.divider()
     
     # Logo école
     try:
+        st.markdown("### 📱 Cours Business Intelligence Efrei")
         efrei_logo = load_image("efrei_logo.png", alt_text="EFREI Paris")
         st.image(efrei_logo, use_container_width=True)
     except:
