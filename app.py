@@ -310,8 +310,7 @@ def kpi_card(title, value, subtitle="", color="#0f62fe", icon="📊", trend=None
         <div style="display: flex; align-items: baseline;">
             <h2 style="margin:0;color:#111;">{value}</h2>
             {trend_html}
-        </div>
-        <p style="margin:10px 0 0 0;color:#666;font-size:0.9rem;">{subtitle}</p>
+        
     </div>
     """
 
@@ -556,7 +555,7 @@ EXPERIENCES = [
         "duration": "Sept 2022 - Présent",
         "location": "Paris La Défense, France",
         "description": "Consultant en data analytics pour la Direction Générale et l'Audit Interne. Missions de dashboarding KPI, automatisation des rapports et support décisionnel pour le CODIR.",
-        "image_filename": "inetum_logo.jpg",  # Image dans assets/inetum_logo.jpg
+        "image_filename": "inetum_logo.png",  # Image dans assets/inetum_logo.png
         "company_color": "#0056b3",
         "tags": ["Power BI", "SQL", "Python", "DataViz", "Process Mining", "Azure", "Tableau", "DAX"],
         "achievements": [
